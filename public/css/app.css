@@ -1,0 +1,71 @@
+
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+body{
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--light);
+}
+
+
+nav{
+    font-weight: bold;
+}
+.nav-item.active{
+    margin-right: 20px;
+}
+.nav-link{
+    color: white;
+    transition: 0.5s;
+}
+nav a.nav-link:hover{
+    color: black;
+}
+
+.main-container{
+    margin-top: 100px;
+}
+
+.category{
+    padding: 10px 40px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.subcategory-item{
+    padding: 10px 40px;
+    background-color: #fff;
+}
+.subcategory-title{
+    color: var(--orange);
+}
+.subcategory-title:hover{
+    color: var(--orange);
+}
+.subcategory-description div + div{
+    margin-left: 20px;
+}
+.subcategory-description div{
+    font-size: 14px;
+}
+.subcategory-item .left{
+    padding: 0;
+}
+
+.main-container .col-7{
+    padding: 0;
+}
+
+.last-topic__topic{
+    font-weight: bold;
+    color: #000;
+}
+.last-topic__topic:hover{
+    color: #000;
+}
+
+
+.item-category{
+    margin-bottom: 20px;
+}
+
