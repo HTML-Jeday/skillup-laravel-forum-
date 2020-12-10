@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Auth;
 class MainController extends Controller {
 
     public function index(Request $request) {
-        //    dd(Auth::user()->role);
 
         $user = Auth::user();
 
@@ -31,8 +30,6 @@ class MainController extends Controller {
                     'subcategories' => $subcategories,
                     'topics' => $topics,
                     'users' => $users,
-                    'userName' => $user->name ?? null,
-                    'userRole' => $user->role,
                     'messages' => $messages]);
     }
 

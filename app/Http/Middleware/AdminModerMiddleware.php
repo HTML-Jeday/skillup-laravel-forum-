@@ -4,8 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class LoginRegisterMiddleware {
+class AdminModerMiddleware {
 
     /**
      * Handle an incoming request.
@@ -16,7 +17,11 @@ class LoginRegisterMiddleware {
      */
     public function handle(Request $request, Closure $next) {
 
-        redirect('/');
+        $role = Auth::user()->role ?? 'guest';
+
+        if ($role !== 'admin' && $role !== 'moderator') {
+            return abort(404);
+        }
         return $next($request);
     }
 

@@ -29,14 +29,11 @@ class TopicController extends Controller {
 
         $categoryTitle = $request->route()->id;
 
-
         $topic = Topic::query()->where('id', $categoryTitle)->first();
 
         if (!$topic) {
             return abort(404);
         }
-
-        $user = Auth::user();
 
         $userInfo = User::query()->where('id', $topic->author)->first();
 
@@ -48,15 +45,29 @@ class TopicController extends Controller {
 
         $subcategory = Subcategory::query()->where('id', $topic->parent_id)->first();
 
+
+        //dd($topic->messages);
+
         return view('topic', ['topic' => $topic,
-            'userName' => $user->name ?? null,
-            'userRole' => $user->role,
             'users' => $users,
             'subcategory' => $subcategory]);
     }
 
-    public function create(CreateTopicRequest $request) {
+    public function admin(Request $request) {
+        $subcategories = Subcategory::query()->get();
+        $topics = Topic::query()->get();
+        $user = Auth::user();
+        $users = User::query()->get();
 
+        return view('admin.topic',
+                [
+                    'subcategories' => $subcategories,
+                    'topics' => $topics,
+                    'users' => $users
+        ]);
+    }
+
+    public function create(CreateTopicRequest $request) {
 
         $validated = $request->validated();
 
@@ -67,14 +78,14 @@ class TopicController extends Controller {
 
         if ($topic) {
             if ($topic->parent_id == $validated['parent_id']) {
-                return response()->json(['error' => 'topic is already exist'], Response::HTTP_BAD_REQUEST);
+                return back()->with(['error' => 'topic is already exist'], Response::HTTP_BAD_REQUEST);
             }
         }
 
         $subcategory = Subcategory::query()->where('id', $validated['parent_id'])->first();
 
         if (!$subcategory) {
-            return response()->json(['error' => 'subcategory do not exist'], Response::HTTP_BAD_REQUEST);
+            return back()->with('subcategory', ['error' => 'subcategory do not exist'], Response::HTTP_BAD_REQUEST);
         }
 
         $userId = Auth::user()->id ?? null;
@@ -82,12 +93,12 @@ class TopicController extends Controller {
         $user = User::query()->where('id', $userId)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'user do not exist'], Response::HTTP_BAD_REQUEST);
+            return back()->with('subcategory', ['error' => 'user do not exist'], Response::HTTP_BAD_REQUEST);
         }
 
         if ($validated['opened'] == 0) {
             if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'moderator') {
-                return response()->json(['error' => 'you do not have premission'], Response::HTTP_FORBIDDEN);
+                return back()->with(['error' => 'you do not have premission'], Response::HTTP_FORBIDDEN);
             }
         }
 
@@ -101,7 +112,7 @@ class TopicController extends Controller {
         $topicItem->save();
 
 
-        return response()->json(['success' => 'topic has been created'], Response::HTTP_CREATED);
+        return back()->with(['success' => 'topic has been created'], Response::HTTP_CREATED);
     }
 
     public function delete(DeleteTopicRequest $request) {
@@ -110,7 +121,7 @@ class TopicController extends Controller {
         $topic = Topic::query()->where('id', $validated['id'])->first();
 
         if (!$topic) {
-            return response()->json(['error' => 'topic do not exist'], Response::HTTP_NOT_FOUND);
+            return back()->with(['error' => 'topic do not exist'], Response::HTTP_NOT_FOUND);
         }
 
         $user = User::query()->where('id', $topic->author)->first();
@@ -119,7 +130,7 @@ class TopicController extends Controller {
         if (Auth::user()->role == 'user' || Auth::user()->role == 'moderator') {
             if ($topic->author !== Auth::user()->id) {
                 if ($user->role == 'moderator' || $user->role == 'admin') {
-                    return response()->json(['error' => 'you do not have premission'], Response::HTTP_FORBIDDEN);
+                    return back()->with(['error' => 'you do not have premission'], Response::HTTP_FORBIDDEN);
                 }
             }
         }
@@ -127,7 +138,7 @@ class TopicController extends Controller {
 
         $topic->delete();
 
-        return response()->json(['success' => 'topic has been deleted'], Response::HTTP_ACCEPTED);
+        return back()->with(['success' => 'topic has been deleted'], Response::HTTP_ACCEPTED);
     }
 
     public function update(UpdateTopicRequest $request) {
@@ -138,42 +149,42 @@ class TopicController extends Controller {
         $topic = Topic::query()->where('id', $validated['id'])->first();
 
         if (!$topic) {
-            return response()->json(['error' => 'topic do not exist'], Response::HTTP_NOT_FOUND);
+            return back()->with(['error' => 'topic do not exist'], Response::HTTP_NOT_FOUND);
         }
 
 
         if ($validated['opened'] == 0) {
             if (Auth::user()->role !== "admin" && Auth::user()->role !== 'moderator') {
-                return response()->json(['error' => 'you do not have premission role'], Response::HTTP_FORBIDDEN);
+                return back()->with(['error' => 'you do not have premission role'], Response::HTTP_FORBIDDEN);
             }
         }
 
         if ($topic->author !== Auth::user()->id) {
-            return response()->json(['error' => 'you do not have premission user id'], Response::HTTP_FORBIDDEN);
+            return back()->with(['error' => 'you do not have premission user id'], Response::HTTP_FORBIDDEN);
         }
 
 
         $title = $validated['title'] ?? $topic->title;
         $parent_id = $validated['parent_id'] ?? $topic->parent_id;
         $text = $validated['text'] ?? $topic->text;
-
-
+        $opened = $validated['opened'] ?? $topic->opened;
 
         $subcategory = Subcategory::query()->where('id', $parent_id);
 
         if (!$subcategory) {
-            return response()->json(['error' => 'parent category do not exist'], Response::HTTP_NOT_FOUND);
+
+            return back()->with(['error' => 'parent category do not exist'], Response::HTTP_NOT_FOUND);
         }
 
-        if ($title == $topic->title && $parent_id == $topic->parent_id && $text == $topic->text) {
-            return response()->json(['ok' => 'nothing to update'], Response::HTTP_OK);
+        if ($title == $topic->title && $parent_id == $topic->parent_id && $text == $topic->text && $opened == $topic->opened) {
+            return back()->with(['ok' => 'nothing to update'], Response::HTTP_OK);
         }
 
         $uniqueTopic = Topic::query()->where('title', $validated['title'])->first();
 
         if ($uniqueTopic) {
-            if ($uniqueTopic->parent_id == $validated['parent_id']) {
-                return response()->json(['error' => 'topic is already exist'], Response::HTTP_BAD_REQUEST);
+            if ($uniqueTopic->id !== $topic->id) {
+                return back()->with(['error' => 'topic is already exist'], Response::HTTP_BAD_REQUEST);
             }
         }
 
@@ -183,7 +194,7 @@ class TopicController extends Controller {
         $topic->text = $text;
         $topic->save();
 
-        return response()->json(['success' => 'topic has been updated'], Response::HTTP_ACCEPTED);
+        return back()->with(['success' => 'topic has been updated'], Response::HTTP_ACCEPTED);
     }
 
 }

@@ -22,7 +22,7 @@
             integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
         crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="css/app.css">
+
         <script src="{{ URL::asset("js/app.js") }}"></script>
         <style>
             body{
@@ -45,9 +45,6 @@
                 color: black;
             }
 
-            .main-container{
-                margin-top: 100px;
-            }
 
             .category{
                 padding: 10px 40px;
@@ -122,9 +119,14 @@
             .topic-container + .topic-container{
                 border-top: 1px solid #ccc;
             }
-            .topic-item{
+            .addMessage{
                 margin-top: 100px;
-
+                text-align: right;
+                display: block;
+                color: var(--orange);
+            }
+            .addMessage:hover{
+                color: var(--orange);
             }
             .topic-item .topic-title{
                 padding: 10px 40px;
@@ -202,6 +204,7 @@
             .addCategory{
                 font-size: 20px;
                 margin-bottom: 20px;
+                margin-top: 100px;
                 display: block;
                 width: 23px;
                 height: 31px;
@@ -216,6 +219,67 @@
             .addTopic:hover{
                 color: var(--orange);
             }
+            .top-container{
+                margin-top: 100px;
+            }
+
+            .admin-page h1{
+                margin-top: 100px;
+                text-align: center;
+            }
+            .category-create{
+                margin-top: 30px;
+                justify-content: center;
+            }
+            .admin-page .author-item{
+                max-width: 250px;
+                width: 100%;
+            }
+            .admin-page .topic-name{
+                width: 100px;
+                margin: 0 20px;
+            }
+            .category-page .category-item-admin, .subcategory-page .category-item-admin{
+                justify-content: center;
+            }
+            .user-item .user-name{
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .user-wrapper{
+                max-width: 500px;
+                margin: 0 auto;
+            }
+
+            .user-wrapper .heading{
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+            .user-page{
+                margin-top: 100px;
+            }
+
+            .user-profile{
+                max-width: 400px;
+                margin: 50px auto;
+                background-color: #fff;
+
+            }
+            .user-profile .user-top{
+                padding: 10px 40px;
+                text-align: center;
+            }
+            .user-profile .user-container{
+                padding: 10px 40px;
+            }
+            .user-container div{
+                margin: 10px 0;
+            }
+            .messages-wrapper{
+                background-color: #fff;
+            }
+
         </style>
     </head>
 
@@ -223,11 +287,23 @@
     <nav class="navbar navbar-expand-lg bg-warning">
         <div class="container">
             <a class="navbar-brand text-white" href="/">Forum</a>
+            @if(Auth::check())
+            @if(Auth::user()->role == 'admin')
+            <a class="text-white nav-link" href="/category">All categories</a>
+            <a class="text-white nav-link" href="/subcategory">All subcategories</a>
+            @endif
+            @endif
+            @if(Auth::check())
+            @if(Auth::user()->role == 'admin' || (Auth::user()->role == 'moderator'))
+            <a class="text-white nav-link" href="/topic">All topics</a>
+            <a class="text-white nav-link" href="/message">All messages</a>
+            @endif
+            @endif
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
-                    @if( $userName ?? '' )
+                    @if( Auth::user()->name ?? '' )
                     <li class="nav-item active">
-                        <a class="nav-link text-white" href="#">Hi, {{ $userName }}</a>
+                        <a class="nav-link text-white" href="/user/profile">Hi, {{ Auth::user()->name }}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/logout">Logout</a>
@@ -259,7 +335,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Register</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Login</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -289,7 +365,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Login</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Register</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -320,14 +396,23 @@
     <!-- Modal -->
 
     <div class="container">
-        @if ($success ?? '')
+
+
+        @if (\Session::has('success'))
         <div class="alert alert-success">
-            {{ $success ?? '' }}
+            {!! \Session::get('success') !!}
         </div>
         @endif
-        @if ($error ?? '' )
+        @if (\Session::has('error'))
         <div class="alert alert-danger">
-            {{ $error ?? '' }}
+            {!! \Session::get('error') !!}
+        </div>
+        @endif
+        @if (\Session::has('ok'))
+        <div class="alert alert-warning">
+            {!! \Session::get('ok') !!}
         </div>
         @endif
     </div>
+
+

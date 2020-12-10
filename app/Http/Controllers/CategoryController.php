@@ -13,6 +13,7 @@ use App\Http\Requests\DeleteCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Description of CategoryController
@@ -23,29 +24,32 @@ class CategoryController extends Controller {
 
     public function index() {
 
+        $user = Auth::user();
+
         $categories = Category::query()->get();
 
-        return view('category', ['categories' => $categories]);
+        return view('admin.category',
+                ['categories' => $categories]);
     }
 
     public function create(CreateCategoryRequest $request) {
 
         $validated = $request->validated();
 
+
         $category = Category::query()->where('title', $validated['title'])->first();
 
         if ($category) {
-            return response()->json(['error' => 'category already exist'], Response::HTTP_BAD_REQUEST);
+            return back()->with(['error' => 'category already exist'], Response::HTTP_BAD_REQUEST);
         }
 
 
         $categoryItem = new Category();
-
         $categoryItem->title = $validated['title'];
         $categoryItem->save();
 
 
-        return response()->json(['sucess' => 'category has been created'], Response::HTTP_CREATED);
+        return back()->with(['success' => 'category has been created'], Response::HTTP_CREATED);
     }
 
     public function delete(DeleteCategoryRequest $request) {
@@ -56,12 +60,12 @@ class CategoryController extends Controller {
         $category = Category::query()->where('id', $validated['id'])->firstOrFail();
 
         if (!$category) {
-            return response()->json(['error' => 'category do not exist!'], Response::HTTP_NOT_FOUND);
+            return back()->with(['error' => 'category do not exist!'], Response::HTTP_NOT_FOUND);
         }
 
         $category->delete();
 
-        return response()->json(['success' => 'category has been deleted!'], Response::HTTP_ACCEPTED);
+        return back()->with(['success' => 'category has been deleted!'], Response::HTTP_ACCEPTED);
     }
 
     public function update(UpdateCategoryRequest $request) {
@@ -72,26 +76,24 @@ class CategoryController extends Controller {
         $category = Category::query()->where('id', $validated['id'])->first();
 
         if (!$category) {
-            return response()->json(['error' => 'category do not exist!'], Response::HTTP_NOT_FOUND);
+            return back()->with(['error' => 'category do not exist!'], Response::HTTP_NOT_FOUND);
         }
 
         $uniqueCategory = Category::query()->where('title', $validated['title'])->first();
 
-        if ($uniqueCategory) {
-            return response()->json(['error' => 'category already exist'], Response::HTTP_BAD_REQUEST);
+        if ($uniqueCategory->id !== $category->id) {
+            return back()->with(['error' => 'category already exist'], Response::HTTP_BAD_REQUEST);
         }
 
-
-
         if ($category->title == $validated['title']) {
-            return response()->json(['ok' => 'nothing to update!'], Response::HTTP_OK);
+            return back()->with(['ok' => 'nothing to update!'], Response::HTTP_OK);
         }
 
 
         $category->title = $validated['title'];
         $category->save();
 
-        return response()->json(['success' => 'category has been updated!'], Response::HTTP_ACCEPTED);
+        return back()->with(['success' => 'category has been updated!'], Response::HTTP_ACCEPTED);
     }
 
 }

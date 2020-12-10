@@ -30,8 +30,6 @@ class SubcategoryController extends Controller {
         $categoryTitle = $request->route()->id;
 
 
-        $user = Auth::user();
-
         $users = User::query()->get();
 
         $subcategory = Subcategory::query()->where('id', $categoryTitle)->first();
@@ -40,9 +38,24 @@ class SubcategoryController extends Controller {
         }
 
 
-        return view('subcategory', ['subcategory' => $subcategory,
-            'userName' => $user->name ?? null,
+        return view('subcategory', [
+            'subcategory' => $subcategory,
             'users' => $users]);
+    }
+
+    public function admin(Request $request) {
+
+        $user = Auth::user();
+        $categories = Category::query()->get();
+        $subcategories = Subcategory::query()->get();
+
+        return view('admin.subcategory',
+                [
+                    'userRole' => $user->role ?? null,
+                    'userName' => $user->name ?? null,
+                    'categories' => $categories,
+                    'subcategories' => $subcategories
+        ]);
     }
 
     public function create(CreateSubcategoryRequest $request) {
@@ -52,14 +65,14 @@ class SubcategoryController extends Controller {
         $subcategory = Subcategory::query()->where('title', $validated['title'])->first();
 
         if ($subcategory) {
-            return response()->json(['error' => 'subcategory exist'], Response::HTTP_BAD_REQUEST);
+            return back()->with(['error' => 'subcategory exist'], Response::HTTP_BAD_REQUEST);
         }
 
 
         $category = Category::query()->where('id', $validated['parent_id'])->first();
 
         if (!$category) {
-            return response()->json(['error' => 'category do not exist'], Response::HTTP_BAD_REQUEST);
+            return back()->with(['error' => 'category do not exist'], Response::HTTP_BAD_REQUEST);
         }
 
         $subcategoryItem = new Subcategory();
@@ -68,7 +81,7 @@ class SubcategoryController extends Controller {
 
         $subcategoryItem->save();
 
-        return response()->json(['success' => 'subcategory has been created'], Response::HTTP_CREATED);
+        return back()->with(['success' => 'subcategory has been created'], Response::HTTP_CREATED);
     }
 
     public function delete(DeleteSubcategoryRequest $request) {
@@ -77,22 +90,21 @@ class SubcategoryController extends Controller {
         $subcategory = Subcategory::query()->where('id', $validated['id'])->first();
 
         if (!$subcategory) {
-            return response()->json(['error' => 'subcategory do not exist'], Response::HTTP_NOT_FOUND);
+            return back()->with(['error' => 'subcategory do not exist'], Response::HTTP_NOT_FOUND);
         }
 
         $subcategory->delete();
 
-        return response()->json(['success' => 'subcategory has been deleted'], Response::HTTP_ACCEPTED);
+        return back()->with(['success' => 'subcategory has been deleted'], Response::HTTP_ACCEPTED);
     }
 
     public function update(UpdateSubcategoryRequest $request) {
         $validated = $request->validated();
 
-
         $subcategory = Subcategory::query()->where('id', $validated['id'])->first();
 
         if (!$subcategory) {
-            return response()->json(['error' => 'subcategory do not exist'], Response::HTTP_NOT_FOUND);
+            return back()->with(['error' => 'subcategory do not exist'], Response::HTTP_NOT_FOUND);
         }
 
 
@@ -103,26 +115,29 @@ class SubcategoryController extends Controller {
         $category = Category::query()->where('id', $parent_id)->first();
 
         if (!$category) {
-            return response()->json(['error' => 'category do not exist'], Response::HTTP_NOT_FOUND);
+            return back()->with(['error' => 'category do not exist'], Response::HTTP_NOT_FOUND);
         }
 
         if ($title == $subcategory->title && $parent_id == $subcategory->parent_id) {
-            return response()->json(['ok' => 'nothing to update'], Response::HTTP_OK);
+            return back()->with(['ok' => 'nothing to update'], Response::HTTP_OK);
         }
 
 
         $uniqueSubcategory = Subcategory::query()->where('title', $validated['title'])->first();
-
         if ($uniqueSubcategory) {
-            return response()->json(['error' => 'subcategory must be unique'], Response::HTTP_BAD_REQUEST);
+            if ($uniqueSubcategory->parent_id == $parent_id) {
+                return back()->with(['error' => 'subcategory must be unique'], Response::HTTP_BAD_REQUEST);
+            }
         }
+
 
         $subcategory->title = $title;
         $subcategory->parent_id = $parent_id;
 
+
         $subcategory->save();
 
-        return response()->json(['success' => 'subcategory has been updated'], Response::HTTP_ACCEPTED);
+        return back()->with(['success' => 'subcategory has been updated'], Response::HTTP_ACCEPTED);
     }
 
 }

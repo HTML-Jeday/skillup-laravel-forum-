@@ -13,7 +13,7 @@ class VerificationController extends Controller {
         $verification = Verification::query()->where('hash', $hash)->first();
 
         if (!$verification) {
-            return response()->json(['error' => 'user has been verificated or not registered'], Response::HTTP_BAD_REQUEST);
+            return response()->view('welcome', ['error' => 'user has been verificated or not registered'], Response::HTTP_BAD_REQUEST);
         }
         $user = User::query()->where('id', $verification->user_id)->first();
 

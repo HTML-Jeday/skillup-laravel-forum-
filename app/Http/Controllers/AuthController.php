@@ -18,6 +18,7 @@ use \Illuminate\Http\Response;
 use \Illuminate\Support\Facades\Mail;
 use \App\Mail\VerificationMail;
 use \Illuminate\View\View;
+use Illuminate\Support\Facades\Redirect;
 
 /**
  * Description of AuthController
@@ -31,17 +32,17 @@ class AuthController extends Controller {
         $validated = $request->validated();
 
         $user = User::query()->where('email', $validated['email'])->first();
+
         if (!$user || !Hash::check($validated['password'], $user->password)) {
-            return response()->view('welcome', ['error' => 'Creadentials are incorrect or account does not exist'], Response::HTTP_BAD_REQUEST);
+            return back()->with(['error' => 'Creadentials are incorrect or account does not exist']);
         }
 
         $auth = Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']]);
 
-        return response()->view('welcome', ['userName' => $user->name ?? null, 'success' => 'You are logged in'], Response::HTTP_OK);
+        return back()->with(['success' => 'you have been loggedin']);
     }
 
     public function register(RegisterUserRequest $request) {
-
 
         $validated = $request->validated();
 
@@ -52,7 +53,7 @@ class AuthController extends Controller {
         $user->password = Hash::make($validated['password']);
 
         if (User::query()->where('email', $user->email)->first()) {
-            return response()->view('welcome', ['error' => 'Creadentials are incorrect or user already exist'], Response::HTTP_BAD_REQUEST);
+            return back()->with(['error' => 'Creadentials are incorrect or user already exist']);
         }
         $user->save();
 
@@ -68,7 +69,7 @@ class AuthController extends Controller {
         Mail::to($user->email)->send($mailable);
 
 
-        return response()->view('welcome', ['userName' => $user->name ?? null, 'success' => 'user has been created'], Response::HTTP_CREATED);
+        return back()->with(['success' => 'user has been created']);
     }
 
     public function logout() {

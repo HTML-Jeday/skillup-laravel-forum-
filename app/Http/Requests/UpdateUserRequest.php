@@ -25,8 +25,7 @@ class UpdateUserRequest extends FormRequest {
             'id' => ['required', 'string'],
             'name' => ['sometimes', 'required', 'string'],
             'password' => ['sometimes', 'required', 'string'],
-            'role' => ['sometimes', 'required', 'string'],
-            'gender' => ['sometimes', 'required', 'boolean'],
+            'gender' => ['sometimes', 'required', 'string'],
             'FirstName' => ['sometimes', 'required', 'string'],
             'LastName' => ['sometimes', 'required', 'string'],
             'avatar' => ['sometimes', 'required', 'string']

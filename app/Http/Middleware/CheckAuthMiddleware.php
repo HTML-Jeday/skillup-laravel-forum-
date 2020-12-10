@@ -20,8 +20,9 @@ class CheckAuthMiddleware {
      */
     public function handle(Request $request, Closure $next) {
 
-
-
+        if (!Auth::check()) {
+            return redirect('/');
+        }
 
         if (Auth::check()) {
 
@@ -33,13 +34,7 @@ class CheckAuthMiddleware {
                 Auth::logout();
                 return response()->view('welcome', ['error' => 'Creadentials are incorrect or account does not exist'], Response::HTTP_UNAUTHORIZED);
             }
-
-            return redirect('/');
         }
-
-
-
-
 
         return $next($request);
     }
