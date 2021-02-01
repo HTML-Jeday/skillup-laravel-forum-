@@ -27,27 +27,48 @@ class SubcategoryController extends Controller {
 
     public function index(Request $request) {
 
-        $categoryTitle = $request->route()->id;
+        $categoryId = $request->route()->id;
 
+        $subcategory = Subcategory::query()->where('id', $categoryId)->first();
 
-        $users = User::query()->get();
-
-        $subcategory = Subcategory::query()->where('id', $categoryTitle)->first();
         if (!$subcategory) {
             return abort(404);
         }
 
 
+        $users = User::query()->get();
+        $listUsers = [];
+        $newUsers = [];
+
+        forEach ($users as $user) {
+            forEach ($user->topics as $topic) {
+                if ($topic->parent_id == $subcategory->id) {
+                    $listUsers[] = $topic->author;
+                }
+            }
+        }
+
+        forEach ($users as $user) {
+            forEach ($listUsers as $lu) {
+                if ($user->id == $lu) {
+                    $newUsers[] = $user;
+                }
+            }
+        }
+
+
+
+
         return view('subcategory', [
             'subcategory' => $subcategory,
-            'users' => $users]);
+            'users' => $newUsers]);
     }
 
     public function admin(Request $request) {
 
         $user = Auth::user();
-        $categories = Category::query()->get();
-        $subcategories = Subcategory::query()->get();
+        $categories = Category::paginate(15);
+        $subcategories = Subcategory::paginate(15);
 
         return view('admin.subcategory',
                 [

@@ -46,15 +46,15 @@ class AuthController extends Controller {
 
         $validated = $request->validated();
 
+        if (User::query()->where('email', $validated['email'])->first()) {
+            return back()->with(['error' => 'Creadentials are incorrect or user already exist']);
+        }
+
         $user = new User();
 
         $user->email = $validated['email'];
         $user->name = $validated['name'];
         $user->password = Hash::make($validated['password']);
-
-        if (User::query()->where('email', $user->email)->first()) {
-            return back()->with(['error' => 'Creadentials are incorrect or user already exist']);
-        }
         $user->save();
 
         $verification = new Verification();

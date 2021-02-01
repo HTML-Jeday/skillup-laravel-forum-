@@ -27,9 +27,9 @@ class MessageController extends Controller {
 
     public function index() {
 
-        $topics = Topic::query()->get();
-        $messages = Message::query()->get();
-        $users = User::query()->get();
+        $topics = Topic::paginate(15);
+        $messages = Message::paginate(15);
+        $users = User::paginate(15);
 
         return view('admin.message', [
             'topics' => $topics,
