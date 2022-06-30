@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>DAROVA EBA</title>
+        <title>Welcome letter</title>
     </head>
     <body>
         <h1>Welcome, {{ $name }}</h1>
