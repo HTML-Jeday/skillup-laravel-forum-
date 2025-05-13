@@ -1,0 +1,22 @@
+name: Deploy Laravel App to AWS ECS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Deploy to AWS
+      - uses: easignthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.EC2_SSH_KEY}}
+          REMOTE_HOST: ${{secrets.HOST_DNS}}
+          REMOTE_USER: ${{secrets.USERNAME}}
+          TARGET: ${{secrets.TARGET_DIR}}
