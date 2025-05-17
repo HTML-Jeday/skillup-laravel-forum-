@@ -1,11 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Response;
@@ -17,103 +11,141 @@ use App\Models\User;
 use App\Models\Topic;
 use App\Models\Message;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 /**
- * Description of MessageController
- *
- * @author linux
+ * Message Controller
+ * 
+ * Handles all operations related to messages including listing, creating,
+ * updating and deleting messages.
  */
-class MessageController extends Controller {
-
-    public function index() {
-
+class MessageController extends Controller
+{
+    /**
+     * Display a listing of all messages for admin panel
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index()
+    {
+        $this->authorize('admin', Message::class);
+        
+        // Paginate results to improve performance
         $topics = Topic::paginate(15);
-        $messages = Message::paginate(15);
+        $messages = Message::with(['user', 'topic'])->paginate(15);
         $users = User::paginate(15);
 
-        return view('admin.message', [
-            'topics' => $topics,
-            'users' => $users,
-            'messages' => $messages]);
+        return view('admin.message', ['topics' => $topics, 'users' => $users, 'messages' => $messages]);
     }
 
-    public function create(CreateMessageRequest $request) {
-
+    /**
+     * Create a new message
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function create(CreateMessageRequest $request)
+    {
+        $this->authorize('create', Message::class);
+        
         $validated = $request->validated();
-        $authUserId = Auth::user()->id ?? null;
+        $user = Auth::user();
 
-        $user = User::query()->where('id', $authUserId)->first();
-
-        if (!$user) {
-            return back()->with(['error' => 'user do not exist'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $topic = Topic::query()->where('id', $validated['parent_id'])->first();
+        // Find the topic
+        $topic = Topic::find($validated['parent_id']);
 
         if (!$topic) {
-            return back()->with(['error' => 'topic do not exist'], Response::HTTP_BAD_REQUEST);
+            return back()
+                ->with('error', 'The selected topic does not exist')
+                ->withInput()
+                ->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
+        // Check if topic is open for new messages
         if (!$topic->opened) {
-            return back()->with(['error' => 'topic is closed noone can add message'], Response::HTTP_BAD_REQUEST);
+            return back()
+                ->with('error', 'This topic is closed and cannot receive new messages')
+                ->withInput()
+                ->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
-        $message = new Message();
+        // Create the message
+        Message::create([
+            'author' => $user->id,
+            'text' => $validated['text'],
+            'parent_id' => $validated['parent_id']
+        ]);
 
-        $message->author = $user->id;
-        $message->text = $validated['text'];
-        $message->parent_id = $validated['parent_id'];
-        $message->save();
-
-        return back()->with(['success' => 'message has been created'], Response::HTTP_CREATED);
+        return back()
+            ->with('success', 'Message has been created successfully')
+            ->setStatusCode(Response::HTTP_CREATED);
     }
 
-    public function delete(DeleteMessageRequest $request) {
+    /**
+     * Delete an existing message
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function delete(DeleteMessageRequest $request)
+    {
         $validated = $request->validated();
 
-        $message = Message::query()->where('id', $validated['id'])->first();
+        // Find the message
+        $message = Message::find($validated['id']);
 
         if (!$message) {
-            return back()->with(['error' => 'message do not exist'], Response::HTTP_NOT_FOUND);
+            return back()
+                ->with('error', 'Message not found')
+                ->setStatusCode(Response::HTTP_NOT_FOUND);
         }
+        
+        // Check authorization using policy
+        $this->authorize('delete', $message);
 
-        $user = User::query()->where('id', $message->author)->first();
-
-        if (Auth::user()->role == 'user' || Auth::user()->role == 'moderator') {
-            if ($message->author !== Auth::user()->id) {
-                if ($user->role == 'moderator' || $user->role == 'admin') {
-                    return back()->with(['error' => 'you do not have premission'], Response::HTTP_FORBIDDEN);
-                }
-            }
-        }
-
+        // Delete the message
         $message->delete();
-        return back()->with(['error' => 'message has been deleted'], Response::HTTP_ACCEPTED);
+        
+        return back()
+            ->with('success', 'Message has been deleted successfully')
+            ->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function update(UpdateMessageRequest $request) {
-
+    /**
+     * Update an existing message
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(UpdateMessageRequest $request)
+    {
         $validated = $request->validated();
 
-        $message = Message::query()->where('id', $validated['id'])->first();
+        // Find the message
+        $message = Message::find($validated['id']);
 
         if (!$message) {
-            return back()->with(['error' => 'message do not exist'], Response::HTTP_NOT_FOUND);
+            return back()
+                ->with('error', 'Message not found')
+                ->withInput()
+                ->setStatusCode(Response::HTTP_NOT_FOUND);
         }
-
-        if ($message->author !== Auth::user()->id) {
-            return back()->with(['error' => 'you do not have premission'], Response::HTTP_FORBIDDEN);
-        }
+        
+        // Check authorization using policy
+        $this->authorize('update', $message);
 
         $messageText = $validated['text'] ?? $message->text;
 
-        if ($message->text == $messageText) {
-            return back()->with(['ok' => 'nothing to update'], Response::HTTP_OK);
+        // If no changes, return early
+        if ($message->text === $messageText) {
+            return back()
+                ->with('info', 'No changes were made')
+                ->setStatusCode(Response::HTTP_OK);
         }
 
+        // Update the message
         $message->text = $messageText;
         $message->save();
-        return back()->with(['success' => 'message has been updated'], Response::HTTP_ACCEPTED);
+        
+        return back()
+            ->with('success', 'Message has been updated successfully')
+            ->setStatusCode(Response::HTTP_ACCEPTED);
     }
-
 }

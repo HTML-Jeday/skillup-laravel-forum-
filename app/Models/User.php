@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Gender;
+use App\Enums\Role;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -13,9 +16,9 @@ use Illuminate\Notifications\Notifiable;
  * @property string $name
  * @property string $email
  * @property string $password
- * @property string role
+ * @property Role $role
  * @property boolean $verified
- * @property boolean $gender
+ * @property Gender $gender
  * @property string $FirstName
  * @property string $LastName
  * @property string $avatar
@@ -45,7 +48,7 @@ class User extends Authenticatable {
      */
     protected $hidden = [
         'password',
-        'remember_token',
+//        'remember_token',
     ];
 
     /**
@@ -54,14 +57,18 @@ class User extends Authenticatable {
      * @var array
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+//        'email_verified_at' => 'datetime',
+        'gender' => Gender::class,
+        'role' => Role::class
     ];
 
-    public function topics() {
+    public function topics() : HasMany
+    {
         return $this->hasMany(Topic::class, 'author');
     }
 
-    public function messages() {
+    public function messages(): HasMany
+    {
         return $this->hasMany(Message::class, 'author');
     }
 

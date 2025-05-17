@@ -24,7 +24,7 @@ class AddTextToTopicsTable extends Migration {
      */
     public function down() {
         Schema::table('topics', function (Blueprint $table) {
-            $table->dropIfExists('text');
+            $table->dropIfExists();
         });
     }
 

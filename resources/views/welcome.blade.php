@@ -17,7 +17,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="POST" action="/category/create">
+                <form method="POST" action="/admin/category/create">
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Title</label>
@@ -42,7 +42,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="POST" action="/subcategory/create">
+                <form method="POST" action="/admin/subcategory/create">
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Title</label>

@@ -1,11 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateCategoryRequest;
@@ -14,86 +8,129 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 /**
- * Description of CategoryController
- *
- * @author linux
+ * Category Controller
+ * 
+ * Handles all operations related to categories including listing, creating,
+ * updating and deleting categories.
  */
-class CategoryController extends Controller {
+class CategoryController extends Controller
+{
+    /**
+     * Display a listing of all categories
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index()
+    {
+        $this->authorize('viewAny', Category::class);
+        
+        $categories = Category::all();
 
-    public function index() {
-
-        $user = Auth::user();
-
-        $categories = Category::query()->get();
-
-        return view('admin.category',
-                ['categories' => $categories]);
+        return view('admin.category', ['categories' => $categories]);
     }
 
-    public function create(CreateCategoryRequest $request) {
-
+    /**
+     * Create a new category
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function create(CreateCategoryRequest $request)
+    {
+        $this->authorize('create', Category::class);
+        
         $validated = $request->validated();
 
-
-        $category = Category::query()->where('title', $validated['title'])->first();
-
-        if ($category) {
-            return back()->with(['error' => 'category already exist'], Response::HTTP_BAD_REQUEST);
+        // Check if category with same title already exists
+        if (Category::where('title', $validated['title'])->exists()) {
+            return back()
+                ->with('error', 'Category already exists')
+                ->withInput()
+                ->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
+        // Create the category
+        Category::create([
+            'title' => $validated['title']
+        ]);
 
-        $categoryItem = new Category();
-        $categoryItem->title = $validated['title'];
-        $categoryItem->save();
-
-
-        return back()->with(['success' => 'category has been created'], Response::HTTP_CREATED);
+        return back()
+            ->with('success', 'Category has been created successfully')
+            ->setStatusCode(Response::HTTP_CREATED);
     }
 
-    public function delete(DeleteCategoryRequest $request) {
-
+    /**
+     * Delete an existing category
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function delete(DeleteCategoryRequest $request)
+    {
         $validated = $request->validated();
 
-
-        $category = Category::query()->where('id', $validated['id'])->firstOrFail();
-
+        $category = Category::find($validated['id']);
+        
+        $this->authorize('delete', $category);
+        
         if (!$category) {
-            return back()->with(['error' => 'category do not exist!'], Response::HTTP_NOT_FOUND);
+            return back()
+                ->with('error', 'Category not found')
+                ->setStatusCode(Response::HTTP_NOT_FOUND);
         }
 
         $category->delete();
 
-        return back()->with(['success' => 'category has been deleted!'], Response::HTTP_ACCEPTED);
+        return back()
+            ->with('success', 'Category has been deleted successfully')
+            ->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
-    public function update(UpdateCategoryRequest $request) {
-
+    /**
+     * Update an existing category
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(UpdateCategoryRequest $request)
+    {
         $validated = $request->validated();
 
-
-        $category = Category::query()->where('id', $validated['id'])->first();
+        $category = Category::find($validated['id']);
+        
+        $this->authorize('update', $category);
 
         if (!$category) {
-            return back()->with(['error' => 'category do not exist!'], Response::HTTP_NOT_FOUND);
+            return back()
+                ->with('error', 'Category not found')
+                ->withInput()
+                ->setStatusCode(Response::HTTP_NOT_FOUND);
         }
 
-        $uniqueCategory = Category::query()->where('title', $validated['title'])->first();
-
-        if ($uniqueCategory->id !== $category->id) {
-            return back()->with(['error' => 'category already exist'], Response::HTTP_BAD_REQUEST);
+        // No changes needed if title is the same
+        if ($category->title === $validated['title']) {
+            return back()
+                ->with('info', 'No changes were made')
+                ->setStatusCode(Response::HTTP_OK);
         }
 
-        if ($category->title == $validated['title']) {
-            return back()->with(['ok' => 'nothing to update!'], Response::HTTP_OK);
+        // Check if another category with the same title exists
+        $existingCategory = Category::where('title', $validated['title'])
+            ->where('id', '!=', $category->id)
+            ->first();
+            
+        if ($existingCategory) {
+            return back()
+                ->with('error', 'A category with this title already exists')
+                ->withInput()
+                ->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
-
 
         $category->title = $validated['title'];
         $category->save();
 
-        return back()->with(['success' => 'category has been updated!'], Response::HTTP_ACCEPTED);
+        return back()
+            ->with('success', 'Category has been updated successfully')
+            ->setStatusCode(Response::HTTP_ACCEPTED);
     }
-
 }

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Verification;
 use \Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class VerificationController extends Controller {
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $hash = $request->input('hash');
         $verification = Verification::query()->where('hash', $hash)->first();
 

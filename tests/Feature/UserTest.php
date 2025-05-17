@@ -32,16 +32,9 @@ class UserTest extends TestCase {
         $response->assertStatus(Response::HTTP_OK);
     }
 
-    // parol name
-    // parol email
-    // name  email
-    //
-    //
-    //
-
     public function RegistrationFailed() {
 
-        $reponse = $this->postJson('/register', [
+        $response = $this->postJson('/register', [
             'email' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'name' => substr(md5(time()), 0, 10),
         ]);
@@ -53,27 +46,27 @@ class UserTest extends TestCase {
         ]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $reponse = $this->postJson('/register', [
+        $response = $this->postJson('/register', [
             'name' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'password' => $password = substr(md5(time()), 0, 6)
         ]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $reponse = $this->postJson('/register', [
+        $response = $this->postJson('/register', [
             'email' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'name' => substr(md5(time()), 0, 10),
             'password' => $password = '1'
         ]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $reponse = $this->postJson('/register', [
+        $response = $this->postJson('/register', [
             'email' => $email = '1',
             'name' => substr(md5(time()), 0, 10),
             'password' => $password = substr(md5(time()), 0, 6)
         ]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $reponse = $this->postJson('/register', [
+        $this->postJson('/register', [
             'email' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'name' => 1,
             'password' => $password = substr(md5(time()), 0, 6)

@@ -1,80 +1,73 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use \Illuminate\Http\Request;
-use App\Models\User;
+use App\Http\Controllers\MainController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SubcategoryController;
+use App\Http\Controllers\TopicController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\VerificationController;
 
-/*
-  |--------------------------------------------------------------------------
-  | Web Routes
-  |--------------------------------------------------------------------------
-  |
-  | Here is where you can register web routes for your application. These
-  | routes are loaded by the RouteServiceProvider within a group which
-  | contains the "web" middleware group. Now create something great!
-  |
- */
+// Public routes
+Route::get('/', [MainController::class, 'index'])->name('home');
+Route::get('topic/{topic}', [TopicController::class, 'index'])->name('topic.show');
+Route::get('subcategory/{id}', [SubcategoryController::class, 'index'])->name('subcategory.show');
 
+// Authentication routes
+Route::post('login', [AuthController::class, 'login'])->name('login');
+Route::post('register', [AuthController::class, 'register'])->name('register');
+Route::get('verification', [VerificationController::class, 'index'])->name('verification');
 
-Route::get('/', [\App\Http\Controllers\MainController::class, 'index']);
+// Admin routes
+Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Category management
+    Route::prefix('category')->name('category.')->group(function () {
+        Route::get('/', [CategoryController::class, 'index'])->name('index');
+        Route::post('create', [CategoryController::class, 'create'])->name('create');
+        Route::delete('delete', [CategoryController::class, 'delete'])->name('delete');
+        Route::put('update', [CategoryController::class, 'update'])->name('update');
+    });
 
-
-
-Route::middleware(['check.admin'])->group(function () {
-    //category
-    Route::post('category/create', '\App\Http\Controllers\CategoryController@create');
-    Route::delete('category/delete', '\App\Http\Controllers\CategoryController@delete');
-    Route::put('category/update', '\App\Http\Controllers\CategoryController@update');
-    //subcategory
-    Route::post('subcategory/create', '\App\Http\Controllers\SubcategoryController@create');
-    Route::delete('subcategory/delete', '\App\Http\Controllers\SubcategoryController@delete');
-    Route::put('subcategory/update', '\App\Http\Controllers\SubcategoryController@update');
-    //admin panel
-
-    Route::get('subcategory', '\App\Http\Controllers\SubcategoryController@admin');
-    Route::get('category', '\App\Http\Controllers\CategoryController@index');
+    // Subcategory management
+    Route::prefix('subcategory')->name('subcategory.')->group(function () {
+        Route::get('/', [SubcategoryController::class, 'admin'])->name('index');
+        Route::post('create', [SubcategoryController::class, 'create'])->name('create');
+        Route::delete('delete', [SubcategoryController::class, 'delete'])->name('delete');
+        Route::put('update', [SubcategoryController::class, 'update'])->name('update');
+    });
 });
 
-Route::middleware(['admin.moder'])->group(function () {
-    Route::get('topic', '\App\Http\Controllers\TopicController@admin');
-    Route::get('message', '\App\Http\Controllers\MessageController@index');
+// Admin and moderator routes
+Route::middleware(['role:admin,moderator'])->prefix('manage')->name('manage.')->group(function () {
+    Route::get('topic', [TopicController::class, 'admin'])->name('topic.index');
+    Route::get('message', [MessageController::class, 'index'])->name('message.index');
 });
 
+// Authenticated user routes
+Route::middleware(['auth'])->group(function () {
+    // Topic management
+    Route::prefix('topic')->name('topic.')->group(function () {
+        Route::post('create', [TopicController::class, 'create'])->name('create');
+        Route::delete('delete', [TopicController::class, 'delete'])->name('delete');
+        Route::put('update', [TopicController::class, 'update'])->name('update');
+    });
 
+    // Message management
+    Route::prefix('message')->name('message.')->group(function () {
+        Route::post('create', [MessageController::class, 'create'])->name('create');
+        Route::delete('delete', [MessageController::class, 'delete'])->name('delete');
+        Route::put('update', [MessageController::class, 'update'])->name('update');
+    });
 
+    // User management
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::get('profile', [UserController::class, 'index'])->name('profile');
+        Route::delete('delete', [UserController::class, 'delete'])->name('delete');
+        Route::post('verification', [UserController::class, 'verification'])->name('verification');
+        Route::put('update', [UserController::class, 'update'])->name('update');
+    });
 
-Route::middleware(['check.auth'])->group(function () {
-    //topic
-    Route::post('topic/create', '\App\Http\Controllers\TopicController@create');
-    Route::delete('topic/delete', '\App\Http\Controllers\TopicController@delete');
-    Route::put('topic/update', '\App\Http\Controllers\TopicController@update');
-//message
-    Route::post('message/create', '\App\Http\Controllers\MessageController@create');
-    Route::delete('message/delete', '\App\Http\Controllers\MessageController@delete');
-    Route::put('message/update', '\App\Http\Controllers\MessageController@update');
-//user
-    Route::get('user/profile', '\App\Http\Controllers\UserController@index');
-
-    Route::delete('user/delete', '\App\Http\Controllers\UserController@delete');
-
-    Route::post('user/verification', '\App\Http\Controllers\UserController@verification');
-
-    Route::get('logout', 'App\Http\Controllers\AuthController@logout');
-
-    Route::put('user/update', '\App\Http\Controllers\UserController@update');
+    Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 });
-
-
-Route::get('topic/{id}', '\App\Http\Controllers\TopicController@index');
-Route::get('subcategory/{id}', '\App\Http\Controllers\SubcategoryController@index');
-
-
-Route::post('login', 'App\Http\Controllers\AuthController@login');
-Route::post('register', 'App\Http\Controllers\AuthController@register');
-Route::get('verification', '\App\Http\Controllers\VerificationController@index');
-
-
-
-
-

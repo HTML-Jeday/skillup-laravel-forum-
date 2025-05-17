@@ -12,25 +12,15 @@ use Illuminate\Support\Facades\Auth;
 
 class MainController extends Controller {
 
-    public function index(Request $request) {
-
-        $user = Auth::user();
-
-
+    public function index(Request $request) 
+    {
         $categories = Category::query()->get();
         $subcategories = Subcategory::query()->get();
         $topics = Topic::query()->get();
         $messages = Message::query()->get();
         $users = User::query()->get();
 
-
-
-        return view('welcome',
-                ['categories' => $categories,
-                    'subcategories' => $subcategories,
-                    'topics' => $topics,
-                    'users' => $users,
-                    'messages' => $messages]);
+        return view('welcome', ['categories' => $categories, 'subcategories' => $subcategories, 'topics' => $topics, 'messages' => $messages, 'users' => $users]);
     }
 
 }

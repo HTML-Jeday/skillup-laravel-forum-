@@ -5,7 +5,7 @@
             <a class= subcategory-top" href="/subcategory/{{$topic->parent_id}}">Back to subcategory</a>
         </div>
         @if(Auth::check())
-        @if($topic->opened)
+        @if($topic->status->isOpened())
         <a href="#" class="addMessage" data-toggle="modal" href="#" data-target="#createMessage">Create message</a>
         @endif
         <!-- Modal -->
@@ -44,7 +44,7 @@
                     <div>{{$topic->title}}</div>
                     <div class="topic-description">author: {{$u->name}}, Subcategory:<a class="text-white subcategory-link" href="/subcategory/{{$subcategory->id}}">{{$subcategory->title}}</a>, Created:{{$topic->created_at}}</div>
                 </div>
-                <div class="topic-status">Topic status: @if ($topic->opened) Open @else Close @endif</div>
+                <div class="topic-status">Topic status: @if ($topic->status->isOpened()) Open @else Closed @endif</div>
             </div>
             @endif
             <div class="topic-wrapper">
@@ -55,19 +55,12 @@
                         <div>
                             <div class="name">{{$u->name}}</div>
                             <div class="info">
-                                @php $date = Carbon\Carbon::now(); @endphp
                                 <div class="role">Role:{{$u->role}}
                                 </div>
-                                <div class="date">Registered: {{$date->toFormattedDateString($u->created_at)}}</div>
+                                <div class="date">Registered: {{Carbon\Carbon::parse($u->created_at)->diffForHumans()}}</div>
                                 <div class="messages">Messages: {{$u->messages->count()}}</div>
                                 <div class="gender">Gender:
-                                    @if($u->gender == 0)
-                                    Female
-                                    @elseif ($u->gender == 1)
-                                    Male
-                                    @else
-                                    Unknown
-                                    @endif
+                                    {{$u->gender->label()}}
                                 </div>
                             </div>
 
@@ -77,11 +70,9 @@
                         <div>{{$topic->text}}</div>
                         <div class="author-text-createdtime">
                             @if ($topic->created_at == $topic->updated_at)
-                            @php $carbon = Carbon\Carbon::now() @endphp
-                            {{$carbon->diffForHumans($topic->created_at)}}
+                            {{Carbon\Carbon::parse($topic->created_at)->diffForHumans()}}
                             @else
-                            @php $carbon = Carbon\Carbon::now() @endphp
-                            Changed: {{$carbon->diffForHumans($topic->updated_at)}}
+                            Changed: {{Carbon\Carbon::parse($topic->updated_at)->diffForHumans()}}
                             @endif
                         </div>
                     </div>
@@ -117,13 +108,7 @@
                             <div class="date">Registered: {{$date->toFormattedDateString($u->created_at)}}</div>
                             <div class="messages">Messages: {{$u->messages->count()}}</div>
                             <div class="gender">Gender:
-                                @if($u->gender == 0)
-                                Female
-                                @elseif ($u->gender == 1)
-                                Male
-                                @else
-                                Unknown
-                                @endif
+                                {{$u->gender->label()}}
                             </div>
                         </div>
 

@@ -44,19 +44,9 @@
                 <input type="hidden" name='id' value="{{$user->id}}">
                 <div>Gender:
                     <select name="gender">
-                        @if ($user->gender == 0)
-                        <option value="-1">Unknown</option>
-                        <option value="0" selected>Female</option>
-                        <option value="1">Male</option>
-                        @elseif ($user->gender == 1)
-                        <option value="-1">Unknown</option>
-                        <option value="0">Female</option>
-                        <option value="1" selected>Male</option>
-                        @else
-                        <option value="-1" >Unknown</option>
-                        <option value="0">Female</option>
-                        <option value="1" >Male</option>
-                        @endif
+                        <option value="{{ \App\Enums\Gender::UNKNOWN->value }}" {{ $user->gender === \App\Enums\Gender::UNKNOWN ? 'selected' : '' }}>Unknown</option>
+                        <option value="{{ \App\Enums\Gender::FEMALE->value }}" {{ $user->gender === \App\Enums\Gender::FEMALE ? 'selected' : '' }}>Female</option>
+                        <option value="{{ \App\Enums\Gender::MALE->value }}" {{ $user->gender === \App\Enums\Gender::MALE ? 'selected' : '' }}>Male</option>
                     </select>
                 </div>
                 <button class="btn btn-warning" type='submit'>Update</button>

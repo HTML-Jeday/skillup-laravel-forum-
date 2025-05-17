@@ -16,7 +16,9 @@ class Kernel extends HttpKernel {
     protected $middleware = [
         // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrustProxies::class,
-        \Fruitcake\Cors\HandleCors::class,
+//        \Fruitcake\Cors\HandleCors::class,
+        \Illuminate\Http\Middleware\HandleCors::class,
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
@@ -63,7 +65,8 @@ class Kernel extends HttpKernel {
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'check.auth' => \App\Http\Middleware\CheckAuthMiddleware::class,
         'check.admin' => \App\Http\Middleware\AdminMiddleware::class,
-        'admin.moder' => \App\Http\Middleware\AdminModerMiddleware::class
+        'admin.moder' => \App\Http\Middleware\AdminModerMiddleware::class,
+        'role' => \App\Http\Middleware\CheckRole::class
     ];
 
 }

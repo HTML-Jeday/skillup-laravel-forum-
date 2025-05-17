@@ -1,82 +1,137 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace App\Http\Controllers;
 
-use \App\Http\Requests\RegisterUserRequest;
-use \App\Http\Requests\LoginUserRequest;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use App\Enums\Gender;
+use App\Enums\Role;
+use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\RegisterUserRequest;
+use App\Mail\VerificationMail;
 use App\Models\User;
 use App\Models\Verification;
-use \Illuminate\Http\Response;
-use \Illuminate\Support\Facades\Mail;
-use \App\Mail\VerificationMail;
-use \Illuminate\View\View;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 /**
- * Description of AuthController
+ * Authentication Controller
  *
- * @author linux
+ * Handles user authentication, registration, and logout functionality.
  */
-class AuthController extends Controller {
+class AuthController extends Controller
+{
 
-    public function login(LoginUserRequest $request) {
+    /**
+     * Handle user login
+     *
+     * @param LoginUserRequest $request
+     * @return RedirectResponse
+     */
+    public function login(LoginUserRequest $request): RedirectResponse
+    {
+        $credentials = $request->validated();
 
-        $validated = $request->validated();
-
-        $user = User::query()->where('email', $validated['email'])->first();
-
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
-            return back()->with(['error' => 'Creadentials are incorrect or account does not exist']);
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return back()->with(['success' => 'You have been logged in successfully']);
         }
 
-        $auth = Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']]);
-
-        return back()->with(['success' => 'you have been loggedin']);
+        return back()->with(['error' => 'Credentials are incorrect or account does not exist']);
     }
 
-    public function register(RegisterUserRequest $request) {
-
+    /**
+     * Handle user registration
+     *
+     * @param RegisterUserRequest $request
+     * @return RedirectResponse
+     */
+    public function register(RegisterUserRequest $request): RedirectResponse
+    {
         $validated = $request->validated();
 
-        if (User::query()->where('email', $validated['email'])->first()) {
-            return back()->with(['error' => 'Creadentials are incorrect or user already exist']);
+        if (User::where('email', $validated['email'])->exists()) {
+            return back()->with(['error' => 'User with this email already exists']);
         }
 
-        $user = new User();
+        // Create new user
+        $user = $this->createUser($validated);
 
-        $user->email = $validated['email'];
-        $user->name = $validated['name'];
-        $user->password = Hash::make($validated['password']);
+        // Create verification record
+//        $verificationHash = $this->createVerification($user);
+
+        // Authenticate the user
+        Auth::attempt([
+            'email' => $validated['email'],
+            'password' => $validated['password']
+        ]);
+
+        // Send verification email
+//        $this->sendVerificationEmail($user, $verificationHash);
+
+        return back()->with(['success' => 'User has been created successfully']);
+    }
+
+    /**
+     * Create a new user
+     *
+     * @param array $data
+     * @return User
+     */
+    private function createUser(array $data): User
+    {
+        $user = new User();
+        $user->email = $data['email'];
+        $user->name = $data['name'];
+        $user->password = Hash::make($data['password']);
+        $user->gender = Gender::UNKNOWN->value; // Set default gender to unknown
+        $user->role = Role::USER->value; // Set default role to user
         $user->save();
 
+        return $user;
+    }
+
+    /**
+     * Create verification record for user
+     *
+     * @param User $user
+     * @return string The verification hash
+     */
+    private function createVerification(User $user): string
+    {
         $verification = new Verification();
         $verification->user_id = $user->id;
         $verification->hash = md5($user->id);
         $verification->save();
 
-
-        $auth = Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']]);
-
-        $mailable = new VerificationMail($user, $verification->hash);
-        Mail::to($user->email)->send($mailable);
-
-
-        return back()->with(['success' => 'user has been created']);
+        return $verification->hash;
     }
 
-    public function logout() {
+    /**
+     * Send verification email to user
+     *
+     * @param User $user
+     * @param string $verificationHash
+     * @return void
+     */
+    private function sendVerificationEmail(User $user, string $verificationHash): void
+    {
+        $mailable = new VerificationMail($user, $verificationHash);
+        Mail::to($user->email)->send($mailable);
+    }
 
+    /**
+     * Handle user logout
+     *
+     * @return RedirectResponse
+     */
+    public function logout(): RedirectResponse
+    {
         Auth::logout();
+
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
 
         return redirect('/');
     }
-
 }

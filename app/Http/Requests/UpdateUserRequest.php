@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\Gender;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest {
 
@@ -22,10 +24,14 @@ class UpdateUserRequest extends FormRequest {
      */
     public function rules() {
         return [
-            'id' => ['required', 'string'],
+            'id' => ['required', 'integer'],
             'name' => ['sometimes', 'required', 'string'],
             'password' => ['sometimes', 'required', 'string'],
-            'gender' => ['sometimes', 'required', 'string'],
+            'gender' => ['sometimes', 'required', 'integer', Rule::in([
+                Gender::UNKNOWN->value,
+                Gender::FEMALE->value,
+                Gender::MALE->value,
+            ])],
             'FirstName' => ['sometimes', 'required', 'string'],
             'LastName' => ['sometimes', 'required', 'string'],
             'avatar' => ['sometimes', 'required', 'string']

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\TopicStatus;
 
 class CreateTopicRequest extends FormRequest {
 
@@ -24,7 +25,8 @@ class CreateTopicRequest extends FormRequest {
         return [
             'title' => ['required', 'string'],
             'parent_id' => ['required', 'string'],
-            'opened' => ['required', 'boolean'],
+            'opened' => ['boolean'], // Keep for backward compatibility
+            'status' => ['integer', 'in:' . implode(',', TopicStatus::values())],
             'text' => ['required', 'string']
         ];
     }

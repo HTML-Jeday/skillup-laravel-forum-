@@ -30,8 +30,8 @@
                             <div class="form-group form-check">
 
 
-                                <input value="0" name="opened"  type="hidden">
-                                <input type="checkbox" checked  value="1" name="opened" class="form-check-input" id="exampleCheck1">
+                                <input type="hidden" name="status" value="0">
+                                <input type="checkbox" checked class="form-check-input" id="exampleCheck1" onchange="this.checked ? document.getElementsByName('status')[0].value = '1' : document.getElementsByName('status')[0].value = '0'">
                                 <label class="form-check-label" for="exampleCheck1">is topic open?</label>
                             </div>
                             <input name="parent_id" type='hidden' value="{{$subcategory->id}}">
