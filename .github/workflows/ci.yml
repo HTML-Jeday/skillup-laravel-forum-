@@ -20,7 +20,7 @@ jobs:
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
-    - name: Build the Docker image 
-      run: docker build -t skillup-laravel-forum- .
+    - name: Build the Docker image
+      run: docker build -t skillup-laravel-forum .
     - name: Push to Dockerhub
-      run: docker push htmljeday/skillup-laravel-forum-:latest
+      run: docker push htmljeday/skillup-laravel-forum:latest
