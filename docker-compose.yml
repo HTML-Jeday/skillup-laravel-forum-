@@ -10,7 +10,7 @@ services:
       - "3306:3306"
 
   php:
-    image: webdevops/php:8.4
+    build: .
     platform: linux/amd64
     container_name: my_php
     environment:
