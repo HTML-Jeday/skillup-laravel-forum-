@@ -1,14 +1,17 @@
 services:
   db:
     image: mysql:5.7
+    platform: linux/amd64
     container_name: my_mysql
     environment:
       MYSQL_DATABASE: skillup
       MYSQL_ALLOW_EMPTY_PASSWORD: yes
     ports:
       - "3306:3306"
+
   php:
     image: webdevops/php:8.4
+    platform: linux/amd64
     container_name: my_php
     environment:
       PHP_UPLOAD_MAX_FILESIZE: 5000M
@@ -16,10 +19,12 @@ services:
     volumes:
       - "./:/laravel"
     working_dir: '/laravel'
+
   nginx:
     depends_on:
       - php
     image: webdevops/nginx
+    platform: linux/amd64
     container_name: my_nginx
     environment:
       WEB_DOCUMENT_ROOT: /laravel/public
