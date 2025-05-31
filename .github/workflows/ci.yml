@@ -81,4 +81,4 @@ jobs:
 
       - name: Push to Dockerhub
         if: success()
-        run: docker push to Dockerhub
+        run: docker push htmljeday/skillup-laravel-forum:latest
