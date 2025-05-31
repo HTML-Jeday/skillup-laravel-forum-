@@ -59,4 +59,32 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# skillup-laravel-forum-
+# skillup-laravel-forum
+
+## Running Tests
+
+To run tests in both local and CI environments, use the provided test script:
+
+```bash
+./run-tests.sh
+```
+
+This script automatically detects whether it's running in a local Docker environment or in GitHub Actions, and sets the appropriate database connection settings. This ensures that tests can run successfully in both environments.
+
+For local testing, make sure your Docker containers are running:
+
+```bash
+docker-compose up -d
+```
+
+Then run the tests:
+
+```bash
+./run-tests.sh
+```
+
+You can also pass additional arguments to the test command:
+
+```bash
+./run-tests.sh --filter=testUserTopicRelationship
+```
