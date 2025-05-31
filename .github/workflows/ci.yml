@@ -59,6 +59,9 @@ jobs:
           DB_PASSWORD: root
         run: php artisan migrate --force
 
+      - name: Run seed
+        run: php artisan db:seed
+
       - name: Run tests
         env:
           DB_CONNECTION: mysql
