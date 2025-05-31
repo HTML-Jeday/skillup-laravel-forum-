@@ -11,6 +11,14 @@ jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: laravel_testing
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
     services:
       mysql:
         image: mysql:8.0
@@ -50,26 +58,12 @@ jobs:
           php artisan cache:clear
 
       - name: Run migrations
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_testing
-          DB_USERNAME: root
-          DB_PASSWORD: root
         run: php artisan migrate --force
 
       - name: Run seed
         run: php artisan db:seed
 
       - name: Run tests
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: laravel_testing
-          DB_USERNAME: root
-          DB_PASSWORD: root
         run: php artisan test
 
       # These steps only run if tests pass
@@ -87,4 +81,4 @@ jobs:
 
       - name: Push to Dockerhub
         if: success()
-        run: docker push htmljeday/skillup-laravel-forum:latest
+        run: docker push to Dockerhub
