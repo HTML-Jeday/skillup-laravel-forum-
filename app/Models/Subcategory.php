@@ -18,7 +18,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read \App\Models\Category $category
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Topic[] $topics
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Message[] $messages
  */
 class Subcategory extends Model
 {
@@ -57,11 +56,4 @@ class Subcategory extends Model
         return $this->hasMany(Topic::class, 'parent_id');
     }
 
-    /**
-     * Get the messages for the subcategory.
-     */
-    public function messages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'parent_id');
-    }
 }
