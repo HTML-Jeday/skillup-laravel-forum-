@@ -66,10 +66,13 @@ jobs:
         run: php artisan db:seed
 
       - name: Run tests
-        run: ./run-tests.sh --stop-on-failure && echo "exit_code=$?" >> $GITHUB_OUTPUT
+        id: run_tests
+        run: |
+          ./run-tests.sh --stop-on-failure
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
       - name: Print test exit code
-        run:
+        run: |
           echo "Test exit code: ${{ steps.run_tests.outputs.exit_code }}"
 
 

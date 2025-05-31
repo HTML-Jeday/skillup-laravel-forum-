@@ -9,6 +9,9 @@ if [ -n "$GITHUB_ACTIONS" ]; then
   export DB_DATABASE=laravel_testing
   export DB_USERNAME=root
   export DB_PASSWORD=root
+
+  # Use the GitHub Actions specific phpunit configuration
+  CONFIG_FILE="phpunit.github.xml"
 elif [ -n "$DOCKER_ENV" ] || [ -f /.dockerenv ]; then
   # Docker environment
   # Use the database service name from docker-compose.yml
@@ -16,6 +19,9 @@ elif [ -n "$DOCKER_ENV" ] || [ -f /.dockerenv ]; then
   export DB_DATABASE=skillup
   export DB_USERNAME=root
   export DB_PASSWORD=
+
+  # Use the default phpunit configuration
+  CONFIG_FILE="phpunit.xml"
 else
   # Local environment (not in Docker)
   # Note: You need to create a local MySQL database named 'laravel_testing'
@@ -28,10 +34,13 @@ else
   export DB_DATABASE=laravel_testing
   export DB_USERNAME=root
   export DB_PASSWORD=root
+
+  # Use the default phpunit configuration
+  CONFIG_FILE="phpunit.xml"
 fi
 
 # Run the tests and capture the exit code
-./vendor/bin/phpunit --stop-on-failure "$@"
+./vendor/bin/phpunit -c $CONFIG_FILE --stop-on-failure "$@"
 STATUS=$?
 echo "Test process exit code: $STATUS"
 exit $STATUS
