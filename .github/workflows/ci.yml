@@ -44,12 +44,25 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer install --no-progress --prefer-dist
+        run: |
+          composer install --no-progress --prefer-dist
+          # Install envsubst if it's not already available
+          if ! command -v envsubst &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y gettext-base
+          fi
 
       - name: Copy .env files
         run: |
           cp .env.example .env
           cp .env.testing.ci .env.testing
+
+      - name: Debug environment
+        run: |
+          echo "GITHUB_ACTIONS: $GITHUB_ACTIONS"
+          echo "Current directory: $(pwd)"
+          echo "Contents of .env.testing:"
+          cat .env.testing
 
       - name: Generate app key
         run: php artisan key:generate

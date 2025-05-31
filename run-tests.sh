@@ -3,8 +3,15 @@
 set -e
 set -x
 
+# Debug output
+echo "GITHUB_ACTIONS: $GITHUB_ACTIONS"
+echo "Current directory: $(pwd)"
+echo "Contents of .env.testing:"
+cat .env.testing
+
 if [ -n "$GITHUB_ACTIONS" ]; then
   # GitHub Actions environment
+  echo "Running in GitHub Actions environment"
   export DB_HOST=127.0.0.1
   export DB_DATABASE=laravel_testing
   export DB_USERNAME=root
@@ -37,6 +44,19 @@ else
 
   # Use the default phpunit configuration
   CONFIG_FILE="phpunit.xml"
+fi
+
+# Process .env.testing file to replace environment variables
+# This is a workaround for Laravel not supporting ${VAR:-default} syntax in .env files
+if [ -f .env.testing ]; then
+  echo "Processing .env.testing file to replace environment variables"
+  # Create a temporary file with environment variables expanded
+  envsubst < .env.testing > .env.testing.tmp
+  # Replace the original file with the processed one
+  mv .env.testing.tmp .env.testing
+  # Show the processed file
+  echo "Processed .env.testing:"
+  cat .env.testing
 fi
 
 # Run the tests and capture the exit code
