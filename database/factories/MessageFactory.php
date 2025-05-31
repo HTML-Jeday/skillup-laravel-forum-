@@ -25,7 +25,7 @@ class MessageFactory extends Factory
     {
         return [
             'author' => User::factory(),
-            'text' => $this->faker->paragraph,
+            'text' => $this->faker->realText(200), // Limit text to 200 characters
             'parent_id' => Topic::factory(),
         ];
     }
