@@ -8,14 +8,14 @@ use Tests\TestCase;
 use Illuminate\Http\Response;
 
 class UserTest extends TestCase {
+    use RefreshDatabase;
 
     /**
-     * A basic feature test example.
+     * Test successful user registration and login
      *
      * @return void
      */
-    public function RegistrationSuccess() {
-
+    public function testRegistrationSuccess() {
         $response = $this->postJson('/register', [
             'email' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'name' => substr(md5(time()), 0, 10),
@@ -32,15 +32,19 @@ class UserTest extends TestCase {
         $response->assertStatus(Response::HTTP_OK);
     }
 
-    public function RegistrationFailed() {
-
+    /**
+     * Test failed registration scenarios
+     *
+     * @return void
+     */
+    public function testRegistrationFailed() {
         $response = $this->postJson('/register', [
             'email' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'name' => substr(md5(time()), 0, 10),
         ]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $reponse = $this->postJson('/register', [
+        $response = $this->postJson('/register', [
             'email' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'password' => $password = substr(md5(time()), 0, 6)
         ]);
@@ -66,12 +70,11 @@ class UserTest extends TestCase {
         ]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $this->postJson('/register', [
+        $response = $this->postJson('/register', [
             'email' => $email = substr(md5(time()), 0, 10) . '@google.com',
             'name' => 1,
             'password' => $password = substr(md5(time()), 0, 6)
         ]);
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
-
 }
