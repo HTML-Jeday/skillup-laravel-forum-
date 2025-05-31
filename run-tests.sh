@@ -15,5 +15,5 @@ else
   export DB_PASSWORD=
 fi
 
-# Run the tests
-php artisan test "$@"
+# Run the tests with environment variables overriding phpunit.xml settings
+php artisan test --env=testing "$@"
