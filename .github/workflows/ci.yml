@@ -71,16 +71,13 @@ jobs:
       # These steps only run if tests pass
 
       - name: Login Dockerhub
-        if: success()
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
       - name: Build the Docker image
-        if: success()
         run: docker build -t htmljeday/skillup-laravel-forum:latest .
 
       - name: Push to Dockerhub
-        if: success()
         run: docker push htmljeday/skillup-laravel-forum:latest
