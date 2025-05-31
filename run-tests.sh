@@ -1,12 +1,8 @@
 #!/bin/bash
 
-# Exit immediately on error
 set -e
-
-# Print each command before executing (for debugging)
 set -x
 
-# Detect CI environment
 if [ -n "$GITHUB_ACTIONS" ]; then
   export DB_HOST=127.0.0.1
   export DB_DATABASE=laravel_testing
@@ -19,5 +15,8 @@ else
   export DB_PASSWORD=
 fi
 
-# Run Pest directly instead of Laravel's wrapper
-exec ./vendor/bin/pest --stop-on-failure "$@"
+# Run the tests and capture the exit code
+./vendor/bin/pest --stop-on-failure "$@"
+STATUS=$?
+echo "Test process exit code: $STATUS"
+exit $STATUS
