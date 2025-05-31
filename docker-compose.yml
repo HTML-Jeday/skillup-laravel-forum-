@@ -9,6 +9,16 @@ services:
     ports:
       - "3306:3306"
 
+  db_test:
+    image: mysql:5.7
+    platform: linux/amd64
+    container_name: my_mysql_test
+    environment:
+      MYSQL_DATABASE: skillup_testing
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+    ports:
+      - "3307:3306"
+
   php:
     build: .
     platform: linux/amd64
@@ -19,6 +29,9 @@ services:
     volumes:
       - "./:/laravel"
     working_dir: '/laravel'
+    depends_on:
+      - db
+      - db_test
 
   nginx:
     depends_on:
