@@ -63,28 +63,40 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ## Running Tests
 
-To run tests in both local and CI environments, use the provided test script:
+### Running Tests in Docker (Recommended)
+
+The project is designed to work inside Docker containers. To run tests in the Docker environment, use the provided script:
 
 ```bash
-./run-tests.sh
+./docker-test.sh
 ```
 
-This script automatically detects whether it's running in a local Docker environment or in GitHub Actions, and sets the appropriate database connection settings. This ensures that tests can run successfully in both environments.
-
-For local testing, make sure your Docker containers are running:
-
-```bash
-docker-compose up -d
-```
-
-Then run the tests:
-
-```bash
-./run-tests.sh
-```
+This script will:
+1. Check if Docker is running
+2. Start the Docker containers if they're not already running
+3. Execute the tests inside the PHP container with the correct database configuration
 
 You can also pass additional arguments to the test command:
 
 ```bash
-./run-tests.sh --filter=testUserTopicRelationship
+./docker-test.sh --filter=testUserTopicRelationship
 ```
+
+### Running Tests Locally
+
+If you prefer to run tests directly on your local machine (not recommended), you'll need to:
+
+1. Set up a local MySQL database named 'laravel_testing' with username 'root' and password 'root'
+2. Run the tests using the provided script:
+
+```bash
+./run-tests.sh
+```
+
+### Running Tests in CI Environment
+
+In GitHub Actions, the tests will automatically use the correct configuration for the CI environment.
+
+### About the Test Scripts
+
+The `run-tests.sh` script automatically detects whether it's running in a local environment, Docker container, or GitHub Actions, and sets the appropriate database connection settings. This ensures that tests can run successfully in all environments.
