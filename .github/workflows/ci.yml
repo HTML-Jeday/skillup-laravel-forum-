@@ -18,17 +18,18 @@ jobs:
       DB_DATABASE: laravel_testing
       DB_USERNAME: root
       DB_PASSWORD: root
+      APP_ENV: testing
 
     services:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: laravel_testing
+          MYSQL_ROOT_PASSWORD: root
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -44,102 +45,86 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: |
-          composer install --no-progress --prefer-dist
-          # Install envsubst if it's not already available
-          if ! command -v envsubst &> /dev/null; then
-            sudo apt-get update
-            sudo apt-get install -y gettext-base
-          fi
+        run: composer install --no-progress --prefer-dist
 
-      - name: Copy .env files
+      - name: Copy .env file
         run: |
           cp .env.example .env
-          # Instead of copying .env.testing.ci, create a new .env.testing file with hardcoded values
-          cat > .env.testing << 'EOL'
-APP_NAME=Laravel
-APP_ENV=testing
-APP_KEY=base64:4n2TiTbnbpG140pwQOPcVY+KfrUcPeBbtbchp3hBcBQ=
-APP_DEBUG=true
-APP_URL=http://localhost
+          echo "APP_KEY=" >> .env
 
-LOG_CHANNEL=stack
-LOG_LEVEL=debug
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=laravel_testing
-DB_USERNAME=root
-DB_PASSWORD=root
-
-BROADCAST_DRIVER=log
-CACHE_DRIVER=array
-QUEUE_CONNECTION=sync
-SESSION_DRIVER=array
-SESSION_LIFETIME=120
-
-MAIL_MAILER=log
-MAIL_HOST=mailpit
-MAIL_PORT=1025
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
-MAIL_FROM_ADDRESS="noreply@example.com"
-MAIL_FROM_NAME="Laravel"
-
-FILESYSTEM_DISK=local
-
-# Вимикаємо зайві сервіси
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-EOL
-
-      - name: Debug environment
+      - name: Create testing environment file
         run: |
-          echo "GITHUB_ACTIONS: $GITHUB_ACTIONS"
-          echo "Current directory: $(pwd)"
-          echo "Contents of .env.testing:"
-          cat .env.testing
+          cat > .env.testing << 'EOL'
+          APP_NAME=Laravel
+          APP_ENV=testing
+          APP_KEY=base64:4n2TiTbnbpG140pwQOPcVY+KfrUcPeBbtbchp3hBcBQ=
+          APP_DEBUG=true
+          APP_URL=http://localhost
+
+          LOG_CHANNEL=stack
+          LOG_LEVEL=debug
+
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=laravel_testing
+          DB_USERNAME=root
+          DB_PASSWORD=root
+
+          BROADCAST_DRIVER=log
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          SESSION_LIFETIME=120
+
+          MAIL_MAILER=log
+          EOL
 
       - name: Generate app key
         run: php artisan key:generate
 
-      - name: Configure database
+      - name: Clear config cache
         run: |
           php artisan config:clear
           php artisan cache:clear
 
+      - name: Wait for MySQL
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
+            echo "Waiting for MySQL to be ready..."
+            sleep 1
+          done
+
       - name: Run migrations
-        run: php artisan migrate --force
+        run: php artisan migrate:fresh --force --env=testing
 
       - name: Run seed
-        run: php artisan db:seed
+        run: php artisan db:seed --force --env=testing
 
       - name: Run tests
         id: run_tests
         run: |
-          ./run-tests.sh --stop-on-failure
+          php artisan config:clear
+          php artisan cache:clear
+          ./vendor/bin/phpunit --configuration phpunit.github.xml --stop-on-failure
           echo "exit_code=$?" >> $GITHUB_OUTPUT
 
       - name: Print test exit code
         run: |
           echo "Test exit code: ${{ steps.run_tests.outputs.exit_code }}"
 
-
-
-
       # These steps only run if tests pass
-
       - name: Login Dockerhub
+        if: success()
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
       - name: Build the Docker image
+        if: success()
         run: docker build -t htmljeday/skillup-laravel-forum:latest .
 
       - name: Push to Dockerhub
+        if: success()
         run: docker push htmljeday/skillup-laravel-forum:latest
