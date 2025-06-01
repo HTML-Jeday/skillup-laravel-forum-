@@ -1,0 +1,34 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+
+jobs:
+
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: Pull Docker Image
+        run: sudo docker pull htmljeday/skillup-laravel-forum:latest
+
+      - name: Delete Old docker container
+        run: sudo docker rm -f skillup-laravel-forum || true
+
+      - name: Run docker container
+        run: sudo docker run -d -p 8080:80 --name skillup-laravel-forum htmljeday/skillup-laravel-forum
+
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to Docker Hub
+        run: sudo docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+      - name: Build Docker Image
+        run: sudo docker build -t htmljeday/skillup-laravel-forum .
+
+      - name: Push Docker Image
+        run: sudo docker push htmljeday/skillup-laravel-forum:latest
