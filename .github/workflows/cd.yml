@@ -20,8 +20,8 @@ jobs:
       - name: Clean up disk space
         run: |
           df -h
-          docker system prune -a -f
-          docker volume prune -f
+          sudo docker system prune -a -f
+          sudo docker volume prune -f
           df -h
 
       - name: Login to Docker Hub
