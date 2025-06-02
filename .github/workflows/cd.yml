@@ -32,25 +32,20 @@ jobs:
 
       - name: Stop and remove old containers
         run: |
-          # Stop and remove containers by name (more reliable)
           sudo docker stop nginx_prod mysql_prod php_prod 2>/dev/null || true
           sudo docker rm nginx_prod mysql_prod php_prod 2>/dev/null || true
 
-          # Also stop any containers using port 80
           sudo docker ps --filter "publish=80" --format "table {{.Names}}" | tail -n +2 | xargs -r docker stop
 
-          # Clean up any remaining containers from previous runs
           sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 
       - name: Start containers in production mode
         run: |
           sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
-          # Wait for services to be ready
           echo "Waiting for services to start..."
           sleep 10
 
-          # Check if containers are running
           sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps
 
       - name: Clean up unused images
