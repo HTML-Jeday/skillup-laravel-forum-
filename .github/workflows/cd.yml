@@ -15,7 +15,7 @@ jobs:
         run: sudo docker pull htmljeday/skillup-laravel-forum:latest
 
       - name: Stop old containers
-        run: docker-compose -f docker-compose.yml -f docker-compose.prod.yml down || true
+        run: sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml down || true
 
       - name: Start containers (prod)
         run: sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
