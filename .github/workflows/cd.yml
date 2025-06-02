@@ -14,11 +14,12 @@ jobs:
       - name: Pull Docker Image
         run: sudo docker pull htmljeday/skillup-laravel-forum:latest
 
-      - name: Delete Old docker container
-        run: sudo docker rm -f skillup-laravel-forum || true
+      - name: Stop old containers
+        run: docker-compose -f docker-compose.yml -f docker-compose.prod.yml down || true
 
-      - name: Run docker container
-        run: sudo docker run -d -p 80:80 --name skillup-laravel-forum htmljeday/skillup-laravel-forum
+      - name: Start containers (prod)
+        run: sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
 
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

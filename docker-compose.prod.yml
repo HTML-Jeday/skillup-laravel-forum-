@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:5.7
+    platform: linux/amd64
+    container_name: mysql_prod
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: skillup
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  php:
+    image: htmljeday/skillup-laravel-forum:latest
+    platform: linux/amd64
+    container_name: php_prod
+    restart: unless-stopped
+    working_dir: /laravel
+    depends_on:
+      - db
+    environment:
+      # optional overrides
+      APP_ENV: production
+      DB_HOST: db
+    volumes:
+      - ./storage:/laravel/storage
+      - ./uploads:/laravel/public/uploads
+
+  nginx:
+    image: webdevops/nginx:alpine
+    platform: linux/amd64
+    container_name: nginx_prod
+    restart: unless-stopped
+    depends_on:
+      - php
+    ports:
+      - "80:80"
+    environment:
+      WEB_DOCUMENT_ROOT: /laravel/public
+      WEB_DOCUMENT_INDEX: index.php
+      WEB_PHP_SOCKET: php:9000
+    volumes:
+      - ./storage:/laravel/storage
+      - ./uploads:/laravel/public/uploads
+
+volumes:
+  db_data:
