@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: skillup
-      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
       - db_data:/var/lib/mysql
     ports:
