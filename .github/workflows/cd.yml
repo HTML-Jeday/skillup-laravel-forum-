@@ -20,13 +20,13 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Pull latest Docker image
-        run: docker pull htmljeday/skillup-laravel-forum:latest
+        run: sudo docker pull htmljeday/skillup-laravel-forum:latest
 
       - name: Stop and remove old containers
-        run: docker-compose -f docker-compose.yml -f docker-compose.prod.yml down --remove-orphans || true
+        run: sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml down --remove-orphans || true
 
       - name: Start containers in production mode
-        run: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+        run: sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
       - name: Clean up unused images
-        run: docker image prune -f
+        run: sudo docker image prune -f
