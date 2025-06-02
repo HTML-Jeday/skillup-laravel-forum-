@@ -39,6 +39,7 @@ services:
       - php
     ports:
       - "80:80"
+      - "443:443"
     environment:
       WEB_DOCUMENT_ROOT: /laravel/public
       WEB_DOCUMENT_INDEX: index.php
